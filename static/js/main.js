@@ -201,3 +201,212 @@ function copyToClipboard(text) {
         showAlert('Copié dans le presse-papiers!', 'success');
     });
 }
+
+// Enhanced Features
+
+// Intersection Observer for animations
+document.addEventListener('DOMContentLoaded', function() {
+    const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('animate-in');
+            }
+        });
+    }, observerOptions);
+    
+    document.querySelectorAll('.card, .timeline-item').forEach(el => {
+        observer.observe(el);
+    });
+});
+
+// Enhanced Search Functionality
+function initializeSearch() {
+    const searchInput = document.getElementById('searchInput');
+    if (!searchInput) return;
+    
+    searchInput.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        const items = document.querySelectorAll('.searchable-item');
+        
+        items.forEach(item => {
+            const text = item.textContent.toLowerCase();
+            if (text.includes(query)) {
+                item.style.display = 'block';
+                item.classList.add('highlight-match');
+            } else {
+                item.style.display = 'none';
+                item.classList.remove('highlight-match');
+            }
+        });
+    });
+}
+
+// Keyboard Navigation
+document.addEventListener('keydown', function(e) {
+    // Escape key to close modals
+    if (e.key === 'Escape') {
+        const modals = document.querySelectorAll('.modal.show');
+        modals.forEach(modal => {
+            const bsModal = bootstrap.Modal.getInstance(modal);
+            if (bsModal) bsModal.hide();
+        });
+    }
+    
+    // Ctrl/Cmd + K for search
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) searchInput.focus();
+    }
+});
+
+// Performance Monitoring
+function trackPerformance() {
+    if ('performance' in window) {
+        window.addEventListener('load', function() {
+            setTimeout(function() {
+                const perfData = performance.getEntriesByType('navigation')[0];
+                const loadTime = perfData.loadEventEnd - perfData.loadEventStart;
+                
+                if (loadTime > 3000) {
+                    console.warn('Page load time is slow:', loadTime + 'ms');
+                }
+            }, 0);
+        });
+    }
+}
+
+// Enhanced Form Validation
+function enhanceFormValidation() {
+    const forms = document.querySelectorAll('form');
+    
+    forms.forEach(form => {
+        const inputs = form.querySelectorAll('input, textarea');
+        
+        inputs.forEach(input => {
+            input.addEventListener('blur', function() {
+                validateField(this);
+            });
+            
+            input.addEventListener('input', function() {
+                if (this.classList.contains('is-invalid')) {
+                    validateField(this);
+                }
+            });
+        });
+    });
+}
+
+function validateField(field) {
+    const value = field.value.trim();
+    let isValid = true;
+    let errorMessage = '';
+    
+    // Required field validation
+    if (field.hasAttribute('required') && !value) {
+        isValid = false;
+        errorMessage = 'Ce champ est requis';
+    }
+    
+    // Email validation
+    if (field.type === 'email' && value) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(value)) {
+            isValid = false;
+            errorMessage = 'Adresse email invalide';
+        }
+    }
+    
+    // Phone validation
+    if (field.type === 'tel' && value) {
+        const phoneRegex = /^[\+]?[0-9\s\-\(\)]{10,}$/;
+        if (!phoneRegex.test(value)) {
+            isValid = false;
+            errorMessage = 'Numéro de téléphone invalide';
+        }
+    }
+    
+    // Update field appearance
+    if (isValid) {
+        field.classList.remove('is-invalid');
+        field.classList.add('is-valid');
+    } else {
+        field.classList.remove('is-valid');
+        field.classList.add('is-invalid');
+        
+        // Show error message
+        let errorDiv = field.parentNode.querySelector('.invalid-feedback');
+        if (!errorDiv) {
+            errorDiv = document.createElement('div');
+            errorDiv.className = 'invalid-feedback';
+            field.parentNode.appendChild(errorDiv);
+        }
+        errorDiv.textContent = errorMessage;
+    }
+    
+    return isValid;
+}
+
+// Theme Persistence
+function initializeTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+        document.body.classList.toggle('dark-mode', savedTheme === 'dark');
+        updateThemeIcon();
+    }
+}
+
+function updateThemeIcon() {
+    const icon = document.querySelector('.dark-mode-toggle i');
+    if (icon) {
+        if (document.body.classList.contains('dark-mode')) {
+            icon.classList.replace('fa-moon', 'fa-sun');
+        } else {
+            icon.classList.replace('fa-sun', 'fa-moon');
+        }
+    }
+}
+
+// Enhanced Notifications
+function showNotification(message, type = 'info', duration = 5000) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Show notification
+    setTimeout(() => notification.classList.add('show'), 100);
+    
+    // Hide notification
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, duration);
+}
+
+// Initialize all enhanced features
+document.addEventListener('DOMContentLoaded', function() {
+    initializeTheme();
+    initializeSearch();
+    enhanceFormValidation();
+    trackPerformance();
+});
+
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function() {
+        navigator.serviceWorker.register('/sw.js')
+            .then(function(registration) {
+                console.log('SW registered: ', registration);
+            })
+            .catch(function(registrationError) {
+                console.log('SW registration failed: ', registrationError);
+            });
+    });
+}
